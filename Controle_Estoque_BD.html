@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Estoque Avançado</title>
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #166088;
+            --success-color: #4CAF50;
+            --warning-color: #ff9800;
+            --danger-color: #f44336;
+            --light-gray: #f5f5f5;
+            --border-color: #ddd;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        
+        h1, h2, h3 {
+            color: var(--secondary-color);
+        }
+        
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .section {
+            flex: 1;
+            min-width: 350px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            overflow: hidden;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+        
+        th {
+            background-color: var(--light-gray);
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background-color: rgba(74, 111, 165, 0.05);
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            max-width: 100%;
+        }
+        
+        form {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .form-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        label {
+            margin-bottom: 5px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        input, select {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #d32f2f;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background-color: #f57c00;
+        }
+        
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        
+        .status-pendente {
+            color: var(--warning-color);
+            font-weight: 500;
+        }
+        
+        .status-concluido {
+            color: var(--success-color);
+            font-weight: 500;
+        }
+        
+        .status-cancelado {
+            color: var(--danger-color);
+            font-weight: 500;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 50%;
+            max-width: 600px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .close {
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .alert {
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .alert-success {
+            background-color: #dff0d8;
+            color: #3c763d;
+            border: 1px solid #d6e9c6;
+        }
+        
+        .alert-danger {
+            background-color: #f2dede;
+            color: #a94442;
+            border: 1px solid #ebccd1;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sistema de Estoque Avançado</h1>
+    <p>Demonstração de relacionamentos em banco de dados com CRUD completo</p>
+    
+    <div id="alert" class="alert"></div>
+    
+    <div class="container">
+        <!-- Seção Usuários -->
+        <div class="section">
+            <div class="section-header">
+                <h2>Usuários</h2>
+                <button class="btn-primary" onclick="openUserModal()">Novo Usuário</button>
+            </div>
+            <div class="table-container">
+                <table id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th>Departamento</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Seção Materiais -->
+        <div class="section">
+            <div class="section-header">
+                <h2>Materiais</h2>
+                <button class="btn-primary" onclick="openMaterialModal()">Novo Material</button>
+            </div>
+            <div class="table-container">
+                <table id="materialsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Estoque</th>
+                            <th>Unidade</th>
+                            <th>Categoria</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- Seção Requisições -->
+        <div class="section">
+            <div class="section-header">
+                <h2>Requisições</h2>
+                <button class="btn-primary" onclick="openRequestModal()">Nova Requisição</button>
+            </div>
+            <div class="table-container">
+                <table id="requestsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Usuário</th>
+                            <th>Data</th>
+                            <th>Status</th>
+                            <th>Itens</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Seção Itens de Requisição -->
+        <div class="section">
+            <div class="section-header">
+                <h2>Itens de Requisição</h2>
+            </div>
+            <div class="table-container">
+                <table id="requestItemsTable">
+                    <thead>
+                        <tr>
+                            <th>Requisição</th>
+                            <th>Material</th>
+                            <th>Quantidade</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Usuário -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="userModalTitle">Novo Usuário</h3>
+                <span class="close" onclick="closeModal('userModal')">&times;</span>
+            </div>
+            <form id="userForm">
+                <input type="hidden" id="userId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="userName">Nome</label>
+                        <input type="text" id="userName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="userEmail">Email</label>
+                        <input type="email" id="userEmail" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="userDept">Departamento</label>
+                    <input type="text" id="userDept" required>
+                </div>
+                <div class="form-row">
+                    <button type="submit" class="btn-primary">Salvar</button>
+                    <button type="button" class="btn-danger" onclick="closeModal('userModal')">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal Material -->
+    <div id="materialModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="materialModalTitle">Novo Material</h3>
+                <span class="close" onclick="closeModal('materialModal')">&times;</span>
+            </div>
+            <form id="materialForm">
+                <input type="hidden" id="materialId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="materialName">Nome</label>
+                        <input type="text" id="materialName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="materialQty">Quantidade</label>
+                        <input type="number" id="materialQty" min="0" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="materialUnit">Unidade</label>
+                        <input type="text" id="materialUnit" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="materialCategory">Categoria</label>
+                        <input type="text" id="materialCategory" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <button type="submit" class="btn-primary">Salvar</button>
+                    <button type="button" class="btn-danger" onclick="closeModal('materialModal')">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal Requisição -->
+    <div id="requestModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="requestModalTitle">Nova Requisição</h3>
+                <span class="close" onclick="closeModal('requestModal')">&times;</span>
+            </div>
+            <form id="requestForm">
+                <input type="hidden" id="requestId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="requestUser">Usuário</label>
+                        <select id="requestUser" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="requestStatus">Status</label>
+                        <select id="requestStatus" required>
+                            <option value="Pendente">Pendente</option>
+                            <option value="Concluído">Concluído</option>
+                            <option value="Cancelado">Cancelado</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Itens da Requisição</label>
+                    <div id="requestItemsContainer"></div>
+                    <button type="button" class="btn-primary btn-sm" onclick="addRequestItem()">Adicionar Item</button>
+                </div>
+                <div class="form-row">
+                    <button type="submit" class="btn-primary">Salvar</button>
+                    <button type="button" class="btn-danger" onclick="closeModal('requestModal')">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Inicializa os dados no localStorage se não existirem
+        function initializeData() {
+            if (!localStorage.getItem('users')) {
+                localStorage.setItem('users', JSON.stringify([
+                    { id: 1, name: 'Admin', email: 'admin@exemplo.com', department: 'Administração' },
+                    { id: 2, name: 'Cris', email: 'almeida.cma@gmail.com', department: 'TI' },
+                    { id: 3, name: 'João Silva', email: 'joao@empresa.com', department: 'RH' }
+                ]));
+            }
+
+            if (!localStorage.getItem('materials')) {
+                localStorage.setItem('materials', JSON.stringify([
+                    { id: 1, name: 'Resma de Papel', quantity: 50, unit: 'un', category: 'Escritório' },
+                    { id: 2, name: 'Caneta Esferográfica', quantity: 200, unit: 'un', category: 'Escritório' },
+                    { id: 3, name: 'Parafuso 5mm', quantity: 1000, unit: 'un', category: 'Produção' }
+                ]));
+            }
+
+            if (!localStorage.getItem('requests')) {
+                localStorage.setItem('requests', JSON.stringify([
+                    { id: 1, userId: 1, date: new Date().toISOString().split('T')[0], status: 'Concluído' },
+                    { id: 2, userId: 2, date: new Date().toISOString().split('T')[0], status: 'Pendente' }
+                ]));
+            }
+
+            if (!localStorage.getItem('requestItems')) {
+                localStorage.setItem('requestItems', JSON.stringify([
+                    { id: 1, requestId: 1, materialId: 1, quantity: 2, status: 'Concluído' },
+                    { id: 2, requestId: 1, materialId: 2, quantity: 5, status: 'Concluído' },
+                    { id: 3, requestId: 2, materialId: 3, quantity: 50, status: 'Pendente' }
+                ]));
+            }
+        }
+
+        // Mostrar alerta
+        function showAlert(message, type = 'success') {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert alert-${type}`;
+            alert.style.display = 'block';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        // Modal functions
+        function openModal(id) {
+            document.getElementById(id).style.display = 'block';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+            if (id === 'requestModal') {
+                document.getElementById('requestItemsContainer').innerHTML = '';
+            }
+        }
+
+		// Função para abrir modal de usuário
+		function openUserModal(userId = null) {
+			const modal = document.getElementById('userModal');
+			const title = document.getElementById('userModalTitle');
+			const form = document.getElementById('userForm');
+			
+			if (userId) {
+				title.textContent = 'Editar Usuário';
+				const users = JSON.parse(localStorage.getItem('users')) || [];
+				const user = users.find(u => u.id === userId);
+				
+				if (user) {
+					document.getElementById('userId').value = user.id;
+					document.getElementById('userName').value = user.name;
+					document.getElementById('userEmail').value = user.email;
+					document.getElementById('userDept').value = user.department;
+				}
+			} else {
+				title.textContent = 'Novo Usuário';
+				form.reset();
+			}
+			
+			openModal('userModal');
+		}
+
+		// Função para abrir modal de material
+		function openMaterialModal(materialId = null) {
+			const modal = document.getElementById('materialModal');
+			const title = document.getElementById('materialModalTitle');
+			const form = document.getElementById('materialForm');
+			
+			if (materialId) {
+				title.textContent = 'Editar Material';
+				const materials = JSON.parse(localStorage.getItem('materials')) || [];
+				const material = materials.find(m => m.id === materialId);
+				
+				if (material) {
+					document.getElementById('materialId').value = material.id;
+					document.getElementById('materialName').value = material.name;
+					document.getElementById('materialQty').value = material.quantity;
+					document.getElementById('materialUnit').value = material.unit;
+					document.getElementById('materialCategory').value = material.category;
+				}
+			} else {
+				title.textContent = 'Novo Material';
+				form.reset();
+			}
+			
+			openModal('materialModal');
+		}
+
+		// Função para abrir modal de requisição
+		function openRequestModal(requestId = null) {
+			const modal = document.getElementById('requestModal');
+			const title = document.getElementById('requestModalTitle');
+			const form = document.getElementById('requestForm');
+			const userSelect = document.getElementById('requestUser');
+			
+			// Carrega usuários no dropdown
+			const users = JSON.parse(localStorage.getItem('users')) || [];
+			userSelect.innerHTML = '<option value="">Selecione um usuário</option>';
+			users.forEach(user => {
+				const option = document.createElement('option');
+				option.value = user.id;
+				option.textContent = `${user.name} (${user.department})`;
+				userSelect.appendChild(option);
+			});
+			
+			if (requestId) {
+				title.textContent = 'Editar Requisição';
+				const requests = JSON.parse(localStorage.getItem('requests')) || [];
+				const request = requests.find(r => r.id === requestId);
+				
+				if (request) {
+					document.getElementById('requestId').value = request.id;
+					document.getElementById('requestUser').value = request.userId;
+					document.getElementById('requestStatus').value = request.status;
+					
+					// Carrega itens da requisição
+					const requestItems = JSON.parse(localStorage.getItem('requestItems')) || [];
+					const items = requestItems.filter(item => item.requestId === request.id);
+					
+					const container = document.getElementById('requestItemsContainer');
+					container.innerHTML = '';
+					
+					items.forEach(item => {
+						addRequestItem(item);
+					});
+				}
+			} else {
+				title.textContent = 'Nova Requisição';
+				form.reset();
+				document.getElementById('requestItemsContainer').innerHTML = '';
+			}
+			
+			openModal('requestModal');
+		}
+
+		// Atualize também a função addRequestItem para lidar com edição:
+		function addRequestItem(item = null) {
+			const container = document.getElementById('requestItemsContainer');
+			const div = document.createElement('div');
+			div.className = 'form-row';
+			div.style.marginBottom = '10px';
+			
+			const materials = JSON.parse(localStorage.getItem('materials')) || [];
+			const materialSelect = document.createElement('select');
+			materialSelect.required = true;
+			materialSelect.style.flex = '2';
+			
+			const emptyOption = document.createElement('option');
+			emptyOption.value = '';
+			emptyOption.textContent = 'Selecione um material';
+			materialSelect.appendChild(emptyOption);
+			
+			materials.forEach(material => {
+				const option = document.createElement('option');
+				option.value = material.id;
+				option.textContent = `${material.name} (${material.quantity} ${material.unit})`;
+				option.dataset.quantity = material.quantity;
+				materialSelect.appendChild(option);
+			});
+			
+			const qtyInput = document.createElement('input');
+			qtyInput.type = 'number';
+			qtyInput.min = '1';
+			qtyInput.placeholder = 'Quantidade';
+			qtyInput.required = true;
+			qtyInput.style.flex = '1';
+			
+			const statusSelect = document.createElement('select');
+			statusSelect.style.flex = '1';
+			['Pendente', 'Concluído', 'Cancelado'].forEach(status => {
+				const option = document.createElement('option');
+				option.value = status;
+				option.textContent = status;
+				statusSelect.appendChild(option);
+			});
+			
+			const removeBtn = document.createElement('button');
+			removeBtn.type = 'button';
+			removeBtn.className = 'btn-danger btn-sm';
+			removeBtn.textContent = 'Remover';
+			removeBtn.style.flex = '0.5';
+			removeBtn.onclick = function() {
+				container.removeChild(div);
+			};
+			
+			if (item) {
+				materialSelect.value = item.materialId;
+				qtyInput.value = item.quantity;
+				statusSelect.value = item.status;
+			}
+			
+			div.appendChild(materialSelect);
+			div.appendChild(qtyInput);
+			div.appendChild(statusSelect);
+			div.appendChild(removeBtn);
+			container.appendChild(div);
+		}
+
+        // Funções para carregar dados
+		// Na função loadUsers:
+		function loadUsers() {
+			const users = JSON.parse(localStorage.getItem('users')) || [];
+			const tbody = document.querySelector('#usersTable tbody');
+			tbody.innerHTML = '';
+			
+			users.forEach(user => {
+				const tr = document.createElement('tr');
+				tr.innerHTML = `
+					<td>${user.id}</td>
+					<td>${user.name}</td>
+					<td>${user.email}</td>
+					<td>${user.department}</td>
+					<td class="action-buttons">
+						<button class="btn-primary btn-sm" onclick="openUserModal(${user.id})">Editar</button>
+						<button class="btn-danger btn-sm" onclick="deleteUser(${user.id})">Excluir</button>
+					</td>
+				`;
+				tbody.appendChild(tr);
+			});
+		}
+
+		// Na função loadMaterials:
+		function loadMaterials() {
+			const materials = JSON.parse(localStorage.getItem('materials')) || [];
+			const tbody = document.querySelector('#materialsTable tbody');
+			tbody.innerHTML = '';
+			
+			materials.forEach(material => {
+				const tr = document.createElement('tr');
+				tr.innerHTML = `
+					<td>${material.id}</td>
+					<td>${material.name}</td>
+					<td>${material.quantity}</td>
+					<td>${material.unit}</td>
+					<td>${material.category}</td>
+					<td class="action-buttons">
+						<button class="btn-primary btn-sm" onclick="openMaterialModal(${material.id})">Editar</button>
+						<button class="btn-danger btn-sm" onclick="deleteMaterial(${material.id})">Excluir</button>
+					</td>
+				`;
+				tbody.appendChild(tr);
+			});
+		}
+
+
+		// Na função loadRequests:
+		function loadRequests() {
+			const requests = JSON.parse(localStorage.getItem('requests')) || [];
+			const users = JSON.parse(localStorage.getItem('users')) || [];
+			const requestItems = JSON.parse(localStorage.getItem('requestItems')) || [];
+			const materials = JSON.parse(localStorage.getItem('materials')) || [];
+			
+			const tbody = document.querySelector('#requestsTable tbody');
+			tbody.innerHTML = '';
+			
+			requests.forEach(request => {
+				const user = users.find(u => u.id === request.userId);
+				const items = requestItems.filter(item => item.requestId === request.id);
+				
+				const tr = document.createElement('tr');
+				tr.innerHTML = `
+					<td>${request.id}</td>
+					<td>${user ? user.name : 'Usuário não encontrado'}</td>
+					<td>${request.date}</td>
+					<td class="status-${request.status.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}">${request.status}</td>
+					<td>${items.length} itens</td>
+					<td class="action-buttons">
+						<button class="btn-primary btn-sm" onclick="openRequestModal(${request.id})">Editar</button>
+						<button class="btn-danger btn-sm" onclick="deleteRequest(${request.id})">Excluir</button>
+					</td>
+				`;
+				tbody.appendChild(tr);
+			});
+		}
+
+        function loadRequestItems() {
+            const requestItems = JSON.parse(localStorage.getItem('requestItems')) || [];
+            const requests = JSON.parse(localStorage.getItem('requests')) || [];
+            const materials = JSON.parse(localStorage.getItem('materials')) || [];
+            
+            const tbody = document.querySelector('#requestItemsTable tbody');
+            tbody.innerHTML = '';
+            
+            requestItems.forEach(item => {
+                const request = requests.find(r => r.id === item.requestId);
+                const material = materials.find(m => m.id === item.materialId);
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>Requisição #${item.requestId}</td>
+                    <td>${material ? material.name : 'Material não encontrado'}</td>
+                    <td>${item.quantity} ${material ? material.unit : ''}</td>
+                    <td class="status-${item.status.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}">${item.status}</td>
+                    <td class="action-buttons">
+                        <button class="btn-danger btn-sm" onclick="deleteRequestItem(${item.id})">Excluir</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Funções CRUD para Usuários
+        document.getElementById('userForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            const userId = document.getElementById('userId').value;
+            
+            const userData = {
+                id: userId ? parseInt(userId) : (users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1),
+                name: document.getElementById('userName').value,
+                email: document.getElementById('userEmail').value,
+                department: document.getElementById('userDept').value
+            };
+            
+            if (userId) {
+                // Edição
+                const index = users.findIndex(u => u.id === parseInt(userId));
+                if (index !== -1) {
+                    users[index] = userData;
+                    showAlert('Usuário atualizado com sucesso!');
+                }
+            } else {
+                // Novo usuário
+                users.push(userData);
+                showAlert('Usuário cadastrado com sucesso!');
+            }
+            
+            localStorage.setItem('users', JSON.stringify(users));
+            loadUsers();
+            closeModal('userModal');
+        });
+
+        function deleteUser(id) {
+            if (confirm('Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.')) {
+                // Verifica se o usuário tem requisições associadas
+                const requests = JSON.parse(localStorage.getItem('requests')) || [];
+                const userRequests = requests.filter(r => r.userId === id);
+                
+                if (userRequests.length > 0) {
+                    showAlert('Não é possível excluir usuário com requisições associadas.', 'danger');
+                    return;
+                }
+                
+                const users = JSON.parse(localStorage.getItem('users')) || [];
+                const filtered = users.filter(u => u.id !== id);
+                
+                localStorage.setItem('users', JSON.stringify(filtered));
+                loadUsers();
+                showAlert('Usuário excluído com sucesso!');
+            }
+        }
+
+        // Funções CRUD para Materiais
+        document.getElementById('materialForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const materials = JSON.parse(localStorage.getItem('materials')) || [];
+            const materialId = document.getElementById('materialId').value;
+            
+            const materialData = {
+                id: materialId ? parseInt(materialId) : (materials.length > 0 ? Math.max(...materials.map(m => m.id)) + 1 : 1),
+                name: document.getElementById('materialName').value,
+                quantity: parseInt(document.getElementById('materialQty').value),
+                unit: document.getElementById('materialUnit').value,
+                category: document.getElementById('materialCategory').value
+            };
+            
+            if (materialId) {
+                // Edição
+                const index = materials.findIndex(m => m.id === parseInt(materialId));
+                if (index !== -1) {
+                    materials[index] = materialData;
+                    showAlert('Material atualizado com sucesso!');
+                }
+            } else {
+                // Novo material
+                materials.push(materialData);
+                showAlert('Material cadastrado com sucesso!');
+            }
+            
+            localStorage.setItem('materials', JSON.stringify(materials));
+            loadMaterials();
+            closeModal('materialModal');
+        });
+
+        function deleteMaterial(id) {
+            if (confirm('Tem certeza que deseja excluir este material? Esta ação não pode ser desfeita.')) {
+                // Verifica se o material tem itens de requisição associados
+                const requestItems = JSON.parse(localStorage.getItem('requestItems')) || [];
+                const materialItems = requestItems.filter(item => item.materialId === id);
+                
+                if (materialItems.length > 0) {
+                    showAlert('Não é possível excluir material com requisições associadas.', 'danger');
+                    return;
+                }
+                
+                const materials = JSON.parse(localStorage.getItem('materials')) || [];
+                const filtered = materials.filter(m => m.id !== id);
+                
+                localStorage.setItem('materials', JSON.stringify(filtered));
+                loadMaterials();
+                showAlert('Material excluído com sucesso!');
+            }
+        }
+
+		// Substitua a função que lida com o submit do formulário de requisições
+		document.getElementById('requestForm').addEventListener('submit', function(e) {
+			e.preventDefault();
+			
+			const requests = JSON.parse(localStorage.getItem('requests')) || [];
+			const requestItems = JSON.parse(localStorage.getItem('requestItems')) || [];
+			const materials = JSON.parse(localStorage.getItem('materials')) || [];
+			
+			const requestId = document.getElementById('requestId').value;
+			const newStatus = document.getElementById('requestStatus').value;
+			
+			const requestData = {
+				id: requestId ? parseInt(requestId) : (requests.length > 0 ? Math.max(...requests.map(r => r.id)) + 1 : 1),
+				userId: parseInt(document.getElementById('requestUser').value),
+				date: new Date().toISOString().split('T')[0],
+				status: newStatus
+			};
+			
+			// Coleta os itens da requisição
+			const container = document.getElementById('requestItemsContainer');
+			const itemDivs = container.querySelectorAll('.form-row');
+			const newItems = [];
+			
+			itemDivs.forEach(div => {
+				const materialSelect = div.querySelector('select');
+				const qtyInput = div.querySelector('input[type="number"]');
+				const statusSelect = div.querySelector('select:last-of-type');
+				
+				newItems.push({
+					id: requestItems.length > 0 ? Math.max(...requestItems.map(i => i.id)) + newItems.length + 1 : newItems.length + 1,
+					requestId: requestData.id,
+					materialId: parseInt(materialSelect.value),
+					quantity: parseInt(qtyInput.value),
+					status: newStatus // Sincroniza com o status da requisição
+				});
+			});
+			
+			if (newItems.length === 0) {
+				showAlert('Adicione pelo menos um item à requisição.', 'danger');
+				return;
+			}
+			
+			// Verifica estoque apenas se for para status Concluído
+			if (newStatus === 'Concluído') {
+				for (const item of newItems) {
+					const material = materials.find(m => m.id === item.materialId);
+					if (material && item.quantity > material.quantity) {
+						showAlert(`Quantidade insuficiente de ${material.name} em estoque.`, 'danger');
+						return;
+					}
+				}
+			}
+			
+			// Se estiver editando uma requisição existente
+			if (requestId) {
+				const oldRequest = requests.find(r => r.id === parseInt(requestId));
+				const oldItems = requestItems.filter(item => item.requestId === parseInt(requestId));
+				
+				// Se estava Concluído e está mudando para outro status, devolve ao estoque
+				if (oldRequest.status === 'Concluído' && newStatus !== 'Concluído') {
+					updateStock(oldItems, 'increase');
+				}
+				
+				// Se estava em outro status e vai para Concluído, retira do estoque
+				if (oldRequest.status !== 'Concluído' && newStatus === 'Concluído') {
+					updateStock(newItems, 'decrease');
+				}
+				
+				// Remove os itens antigos
+				const filteredItems = requestItems.filter(item => item.requestId !== parseInt(requestId));
+				localStorage.setItem('requestItems', JSON.stringify([...filteredItems, ...newItems]));
+				
+				// Atualiza a requisição
+				const index = requests.findIndex(r => r.id === parseInt(requestId));
+				if (index !== -1) {
+					requests[index] = requestData;
+				}
+			} else {
+				// Nova requisição - só atualiza estoque se for direto para Concluído
+				if (newStatus === 'Concluído') {
+					updateStock(newItems, 'decrease');
+				}
+				
+				requests.push(requestData);
+				localStorage.setItem('requestItems', JSON.stringify([...requestItems, ...newItems]));
+			}
+			
+			localStorage.setItem('requests', JSON.stringify(requests));
+			loadRequests();
+			loadRequestItems();
+			loadMaterials();
+			closeModal('requestModal');
+			showAlert('Requisição salva com sucesso!');
+		});
+
+		// Atualize também a função deleteRequest para lidar com status corretamente
+		function deleteRequest(id) {
+			if (confirm('Tem certeza que deseja excluir esta requisição? Todos os itens associados também serão removidos.')) {
+				const requests = JSON.parse(localStorage.getItem('requests')) || [];
+				const requestItems = JSON.parse(localStorage.getItem('requestItems')) || [];
+				
+				const request = requests.find(r => r.id === id);
+				const itemsToDelete = requestItems.filter(item => item.requestId === id);
+				
+				// Se a requisição estava concluída, devolve os itens ao estoque
+				if (request && request.status === 'Concluído') {
+					updateStock(itemsToDelete, 'increase');
+				}
+				
+				// Remove os itens
+				const filteredItems = requestItems.filter(item => item.requestId !== id);
+				localStorage.setItem('requestItems', JSON.stringify(filteredItems));
+				
+				// Remove a requisição
+				const filteredRequests = requests.filter(r => r.id !== id);
+				localStorage.setItem('requests', JSON.stringify(filteredRequests));
+				
+				loadRequests();
+				loadRequestItems();
+				loadMaterials();
+				showAlert('Requisição excluída com sucesso!');
+			}
+		}
+
+        function deleteRequestItem(id) {
+            if (confirm('Tem certeza que deseja excluir este item de requisição?')) {
+                const requestItems = JSON.parse(localStorage.getItem('requestItems')) || [];
+                const itemToDelete = requestItems.find(item => item.id === id);
+                const filtered = requestItems.filter(item => item.id !== id);
+                
+                // Atualiza estoque se o item estava concluído
+                if (itemToDelete && itemToDelete.status === 'Concluído') {
+                    updateStock([itemToDelete], 'increase');
+                }
+                
+                localStorage.setItem('requestItems', JSON.stringify(filtered));
+                loadRequestItems();
+                loadMaterials();
+                showAlert('Item de requisição excluído com sucesso!');
+            }
+        }
+
+        // Função para atualizar o estoque
+        function updateStock(items, operation) {
+            const materials = JSON.parse(localStorage.getItem('materials')) || [];
+            
+            items.forEach(item => {
+                const materialIndex = materials.findIndex(m => m.id === item.materialId);
+                if (materialIndex !== -1) {
+                    if (operation === 'decrease') {
+                        materials[materialIndex].quantity -= item.quantity;
+                    } else {
+                        materials[materialIndex].quantity += item.quantity;
+                    }
+                }
+            });
+            
+            localStorage.setItem('materials', JSON.stringify(materials));
+        }
+
+        // Inicializa o sistema
+        initializeData();
+        loadUsers();
+        loadMaterials();
+        loadRequests();
+        loadRequestItems();
+    </script>
+</body>
+</html>
